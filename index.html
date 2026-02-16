@@ -152,6 +152,14 @@
 
     <!-- Link to your JavaScript file -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    
+    <!-- Analytics Bridge Library (MUST load first) -->
+    <script src="js-analytics-bridge/dist/analytics-bridge.js"></script>
+    
+    <!-- Game Code (MUST load second) -->
     <script src="script.js"></script>
+    
+    <!-- Analytics Integration (MUST load last) -->
+    <script src="analytics-integration.js"></script>
 </body>
 </html>
