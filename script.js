@@ -73,6 +73,75 @@ function stopBackgroundMusic() {
 // --- Game Content ---
 let gameContent = null;
 
+// --- Progress System ---
+let gameManager = null;
+let savedProgress = null;
+
+// Initialize Progress System
+async function initializeProgressSystem() {
+  try {
+    console.log('[Game] Initializing progress system...');
+    
+    // Create Progress Bridge (uses backend payload mode)
+    const progressBridge = new ProgressBridge({
+      useProvidedPayload: true,
+      cacheDuration: 60000
+    });
+
+    // Create Storage Manager
+    const storageManager = new StorageManager({
+      storageKey: 'brainMatchProgress'
+    });
+
+    // Create Validator
+    const validator = new Validator({
+      minLevel: 1,
+      maxLevel: 3  // Campaign has 3 levels
+    });
+
+    // Get AnalyticsBridge if available
+    const analyticsBridge = typeof AnalyticsBridge !== 'undefined' ? AnalyticsBridge : null;
+
+    // Create Game Manager
+    gameManager = new GameManager({
+      progressBridge,
+      storageManager,
+      validator,
+      analyticsBridge,
+      config: CONFIG
+    });
+
+    // Initialize (this will load from local storage)
+    const result = await gameManager.initialize();
+    savedProgress = result;
+    
+    console.log('[Game] Progress system initialized:', result);
+    
+    // Update UI to show saved progress
+    updateProgressDisplay(result.startLevel);
+    
+    return result;
+  } catch (error) {
+    console.error('[Game] Error initializing progress system:', error);
+    return { success: false, startLevel: 1, source: 'default' };
+  }
+}
+
+// Update the progress display on the start screen
+function updateProgressDisplay(level) {
+  const progressDisplay = document.getElementById('progress-display');
+  const savedLevelSpan = document.getElementById('saved-level');
+  
+  if (progressDisplay && savedLevelSpan) {
+    if (level > 1) {
+      savedLevelSpan.textContent = level;
+      progressDisplay.classList.remove('hidden');
+    } else {
+      progressDisplay.classList.add('hidden');
+    }
+  }
+}
+
 // Load game content from JSON file
 async function loadGameContent() {
   try {
@@ -81,6 +150,10 @@ async function loadGameContent() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     gameContent = await response.json();
+    
+    // Initialize progress system after loading content
+    await initializeProgressSystem();
+    
     // Enable start button once content is loaded
     startCampaignButton.disabled = false;
   } catch (error) {
@@ -93,6 +166,7 @@ async function loadGameContent() {
 let gameState = {};
 let totalCampaignTurns = 0;
 let totalCampaignXP = 0;
+let levelStartTime = null;  // Track when level starts for progress system
 
 function resetGameState() {
   clearAllTimers();
@@ -443,6 +517,10 @@ function startGame(level) {
     totalCampaignTurns = 0;
     totalCampaignXP = 0;
   }
+  
+  // Track level start time for progress system
+  levelStartTime = Date.now();
+  
   resetGameState();
   startBackgroundMusic();
   gameState.gameMode = "campaign";
@@ -499,6 +577,23 @@ function handleCampaignWin() {
   const stars = calculateCampaignStars(level, gameState.turns);
   totalCampaignTurns += gameState.turns;
   totalCampaignXP += xp;
+  
+  // Save progress to progress system
+  if (gameManager && gameManager.initialized) {
+    gameManager.handleLevelComplete(level, {
+      xpEarned: xp,
+      turns: gameState.turns,
+      stars: stars,
+      timeTaken: Date.now() - (levelStartTime || Date.now())
+    }).then(saved => {
+      if (saved) {
+        console.log('[Game] Progress saved successfully');
+      }
+    }).catch(err => {
+      console.error('[Game] Error saving progress:', err);
+    });
+  }
+  
   setTimeout(() => {
     // --- ADDED: Trigger Confetti ---
     if (typeof confetti === 'function') {
@@ -623,6 +718,12 @@ function showStartScreen() {
   startScreen.classList.remove("hidden");
 
   stopBackgroundMusic();
+  
+  // Update progress display when returning to start screen
+  if (gameManager && gameManager.initialized) {
+    const startLevel = gameManager.getStartLevel();
+    updateProgressDisplay(startLevel);
+  }
 }
 
 function clearAllTimers() {
@@ -688,7 +789,17 @@ function showHowToPlay() {
   // Start game when "Got it!" is clicked
   startGameButton.onclick = () => {
     howToPlay.classList.add("hidden");
-    startGame(1);
+    
+    // Get the starting level from progress system
+    let startLevel = 1;
+    if (gameManager && gameManager.initialized) {
+      startLevel = gameManager.getStartLevel();
+      console.log('[Game] Starting from saved level:', startLevel);
+    } else {
+      console.log('[Game] No saved progress, starting from level 1');
+    }
+    
+    startGame(startLevel);
   };
 }
 

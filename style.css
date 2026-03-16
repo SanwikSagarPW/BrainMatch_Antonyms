@@ -97,6 +97,39 @@ body {
     width: 80%;
 }
 
+.progress-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.5s ease-in;
+}
+
+.progress-text {
+    margin: 0;
+    font-size: 1em;
+    font-family: 'Mochiy Pop One', sans-serif;
+    color: white;
+    font-weight: bold;
+}
+
+.progress-text span {
+    color: #ffd700;
+    font-size: 1.2em;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 #start-reflex-button {
     display: none;
 }

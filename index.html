@@ -15,6 +15,9 @@
             <img src="subtitle.png" alt="Game Type" class="subtitle-image">
         </div>
         <div class="mode-selection">
+            <div id="progress-display" class="progress-display hidden">
+                <p class="progress-text">Continue from Level <span id="saved-level">1</span></p>
+            </div>
             <button id="start-campaign-button" class="mode-button">Start Game</button>
             <button id="start-reflex-button" class="mode-button">Reflex Mode</button>
         </div>
@@ -155,6 +158,13 @@
     
     <!-- Analytics Bridge Library (MUST load first) -->
     <script src="Analytics/analytics-bridge.js"></script>
+    
+    <!-- Progress System (Load before game code) -->
+    <script src="progress files/config.js"></script>
+    <script src="progress files/validator.js"></script>
+    <script src="progress files/storageManager.js"></script>
+    <script src="progress files/progressBridge.js"></script>
+    <script src="progress files/gameManager.js"></script>
     
     <!-- Game Code (MUST load second) -->
     <script src="script.js"></script>
