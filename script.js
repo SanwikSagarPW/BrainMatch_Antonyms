@@ -100,7 +100,7 @@ async function initializeProgressSystem() {
     });
 
     // Get AnalyticsBridge if available
-    const analyticsBridge = typeof AnalyticsBridge !== 'undefined' ? AnalyticsBridge : null;
+    const analyticsBridge = typeof AnalyticsManager !== 'undefined' ? AnalyticsManager.getInstance() : null;
 
     // Create Game Manager
     gameManager = new GameManager({
@@ -111,8 +111,16 @@ async function initializeProgressSystem() {
       config: CONFIG
     });
 
-    // Initialize (this will load from local storage)
-    const result = await gameManager.initialize();
+    // READ window.userInfo injected by React Native WebView and remap keys
+    const userInfo = window.userInfo;
+    const backendPayload = (userInfo && userInfo.UserID && userInfo.GameID)
+      ? {
+          userId: userInfo.UserID,
+          gameId: userInfo.GameID,
+          highestLevelPlayed: typeof userInfo.highestLevelPlayed === 'number' ? userInfo.highestLevelPlayed : 1,
+        }
+      : null;
+    const result = await gameManager.initialize(backendPayload);
     savedProgress = result;
     
     console.log('[Game] Progress system initialized:', result);
