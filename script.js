@@ -90,7 +90,7 @@ async function initializeProgressSystem() {
 
     // Create Storage Manager
     const storageManager = new StorageManager({
-      storageKey: 'brainMatchProgress'
+      storageKey: 'BrainMatch-antonyms_progress'
     });
 
     // Create Validator

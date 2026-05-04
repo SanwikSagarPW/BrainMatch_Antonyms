@@ -23,7 +23,7 @@ const CONFIG = {
 
   // Storage Configuration
   storage: {
-    storageKey: 'BrainMatch-antonyms',
+    storageKey: 'BrainMatch-antonyms_progress',
     useAsyncStorage: false, // Set to true for React Native
   },
 
